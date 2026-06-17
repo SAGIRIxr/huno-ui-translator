@@ -11,6 +11,9 @@
 // @grant        none
 // @run-at       document-idle
 // @license      MIT
+// @downloadURL  https://raw.githubusercontent.com/SAGIRIxr/huno-ui-translator/main/huno-ui-translator.user.js
+// @updateURL    https://raw.githubusercontent.com/SAGIRIxr/huno-ui-translator/main/huno-ui-translator.user.js
+// @supportURL   https://github.com/SAGIRIxr/huno-ui-translator/issues
 // ==/UserScript==
 
 (function () {
