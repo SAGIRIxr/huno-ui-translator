@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         HUNO UI Translator
 // @namespace    https://github.com/SAGIRIxr/huno-ui-translator
-// @version      0.3.0
+// @version      0.4.0
 // @description  Translate stable HUNO interface text to Simplified Chinese while leaving posts, announcements, torrent names, and other user content untouched.
 // @author       SAGIRIxr
 // @match        https://hawke.uno/*
@@ -20,6 +20,7 @@
   "use strict";
 
   const STORAGE_KEY = "huno-ui-translator-mode";
+  const POSITION_KEY = "huno-ui-translator-position";
   const MODE = {
     ZH: "zh",
     ORIGINAL: "original",
@@ -29,6 +30,7 @@
   const CONFIG = {
     debug: false,
     scanDelayMs: 120,
+    defaultPosition: { top: 78, right: 16 },
   };
 
   const MODE_LABEL = {
@@ -57,13 +59,30 @@
     ".postbody",
     ".post_body",
     ".post_content",
+    ".topic-post",
+    ".topic_post",
+    ".forum-topic",
+    ".forum-topic__body",
     ".comment",
     ".comments",
+    ".message",
+    ".messages",
+    ".private-message",
+    ".notification",
+    ".notifications-list",
+    ".activity-feed",
+    ".activity-list",
+    ".chat",
+    ".chat-message",
+    ".ticket-message",
     ".torrent",
     ".torrentname",
     ".torrent_name",
     ".torrent-title",
     ".torrent_title",
+    ".torrent-description",
+    ".torrent__description",
+    ".torrent-details",
     ".group_torrent",
     ".group",
     ".release",
@@ -71,9 +90,12 @@
     ".title",
     ".description",
     ".bbcode",
+    ".prose",
+    ".markdown",
+    ".wysiwyg",
     ".user-content",
-    ".content",
     "[data-no-translate]",
+    "[data-huno-content]",
     "article",
     "blockquote",
     "pre",
@@ -119,12 +141,30 @@
     ".deep-space-user-card",
     ".deep-space-user-menu",
     ".deep-space-user-stats",
+    ".deep-space-modal",
+    ".deep-space-card",
+    ".deep-space-panel",
+    ".deep-space-tabs",
+    ".deep-space-tab",
+    ".deep-space-filter",
+    ".deep-space-search",
     ".ds-field",
+    ".ds-field__label",
+    ".ds-field__input",
+    ".ds-field__select",
     ".ds-btn-3d",
+    ".ds-badge",
+    ".ds-pill",
+    ".ds-tabs",
+    ".ds-tab",
+    "label",
     "select",
     "option",
+    "summary",
     "[role='dialog']",
     "[role='menu']",
+    "[role='tablist']",
+    "[role='tab']",
   ].join(",");
 
   const TEXT = new Map(Object.entries({
@@ -136,7 +176,10 @@
     "Forums": "\u8bba\u575b",
     "Forum": "\u8bba\u575b",
     "Top 10": "Top 10",
+    "Leaderboard": "\u6392\u884c\u699c",
     "Rules": "\u89c4\u5219",
+    "Info": "\u4fe1\u606f",
+    "FAQ": "\u5e38\u89c1\u95ee\u9898",
     "Wiki": "\u7ef4\u57fa",
     "Staff": "\u7ba1\u7406\u7ec4",
     "Staff PM": "\u7ba1\u7406\u7ec4\u79c1\u4fe1",
@@ -144,6 +187,11 @@
     "Notifications": "\u901a\u77e5",
     "Profile": "\u4e2a\u4eba\u8d44\u6599",
     "User CP": "\u7528\u6237\u9762\u677f",
+    "Account": "\u8d26\u6237",
+    "Dashboard": "\u4eea\u8868\u76d8",
+    "Hub": "\u4e2d\u5fc3",
+    "Store": "\u5546\u5e97",
+    "History": "\u5386\u53f2",
     "Settings": "\u8bbe\u7f6e",
     "Logout": "\u9000\u51fa\u767b\u5f55",
     "Log out": "\u9000\u51fa\u767b\u5f55",
@@ -152,8 +200,11 @@
     "Upload": "\u53d1\u5e03",
     "Upload Torrent": "\u53d1\u5e03\u79cd\u5b50",
     "Upload torrent": "\u53d1\u5e03\u79cd\u5b50",
+    "Add Request": "\u65b0\u589e\u6c42\u79cd",
+    "New Request": "\u65b0\u6c42\u79cd",
     "Donate": "\u6350\u8d60",
     "Bookmarks": "\u6536\u85cf",
+    "Favorites": "\u6536\u85cf",
     "Collages": "\u5408\u96c6",
     "Artists": "\u521b\u4f5c\u8005",
     "Movies": "\u7535\u5f71",
@@ -166,7 +217,6 @@
     "Browse": "\u6d4f\u89c8",
     "Options": "\u9009\u9879",
     "Tools": "\u5de5\u5177",
-    "Info": "\u4fe1\u606f",
     "Actions": "\u64cd\u4f5c",
     "Help": "\u5e2e\u52a9",
     "Stats": "\u7edf\u8ba1",
@@ -181,8 +231,13 @@
     "Save": "\u4fdd\u5b58",
     "Save changes": "\u4fdd\u5b58\u66f4\u6539",
     "Cancel": "\u53d6\u6d88",
+    "Close": "\u5173\u95ed",
+    "Confirm": "\u786e\u8ba4",
+    "Continue": "\u7ee7\u7eed",
+    "Back": "\u8fd4\u56de",
     "Reset": "\u91cd\u7f6e",
     "Delete": "\u5220\u9664",
+    "Remove": "\u79fb\u9664",
     "Edit": "\u7f16\u8f91",
     "Preview": "\u9884\u89c8",
     "Send": "\u53d1\u9001",
@@ -195,6 +250,8 @@
     "All": "\u5168\u90e8",
     "Any": "\u4efb\u610f",
     "New": "\u65b0",
+    "Latest": "\u6700\u65b0",
+    "Popular": "\u70ed\u95e8",
     "Hot": "\u70ed\u95e8",
     "Loved": "\u53d7\u559c\u7231",
     "Unread": "\u672a\u8bfb",
@@ -203,6 +260,7 @@
     "Locked": "\u5df2\u9501\u5b9a",
     "Closed": "\u5df2\u5173\u95ed",
     "Open": "\u6253\u5f00",
+    "Pinned": "\u7f6e\u9876",
     "Last post": "\u6700\u540e\u56de\u590d",
     "Last Post": "\u6700\u540e\u56de\u590d",
     "Topic": "\u4e3b\u9898",
@@ -211,6 +269,7 @@
     "Replies": "\u56de\u590d",
     "Views": "\u6d4f\u89c8",
     "View all": "\u67e5\u770b\u5168\u90e8",
+    "View All": "\u67e5\u770b\u5168\u90e8",
     "Author": "\u4f5c\u8005",
     "Created": "\u521b\u5efa\u65f6\u95f4",
     "Updated": "\u66f4\u65b0\u65f6\u95f4",
@@ -220,7 +279,9 @@
     "Group": "\u5c0f\u7ec4",
     "Encoder": "\u538b\u5236\u7ec4",
     "Category": "\u5206\u7c7b",
+    "Categories": "\u5206\u7c7b",
     "Type": "\u7c7b\u578b",
+    "Types": "\u7c7b\u578b",
     "Size": "\u5927\u5c0f",
     "Files": "\u6587\u4ef6",
     "Snatched": "\u5b8c\u6210",
@@ -228,6 +289,7 @@
     "Bumped": "\u6700\u65b0\u6d3b\u8dc3",
     "Seeders": "\u505a\u79cd",
     "Leechers": "\u4e0b\u8f7d",
+    "Peers": "\u540c\u4f34",
     "Uploaded": "\u5df2\u4e0a\u4f20",
     "Downloaded": "\u5df2\u4e0b\u8f7d",
     "Ratio": "\u5206\u4eab\u7387",
@@ -240,12 +302,14 @@
     "Free": "\u514d\u8d39",
     "Not Free": "\u975e\u514d\u8d39",
     "Tags": "\u6807\u7b7e",
+    "Genres": "\u7c7b\u578b",
     "Filter": "\u7b5b\u9009",
     "Filters": "\u7b5b\u9009",
     "Show filters": "\u663e\u793a\u7b5b\u9009",
     "Hide filters": "\u9690\u85cf\u7b5b\u9009",
     "Clear": "\u6e05\u9664",
     "Clear filters": "\u6e05\u9664\u7b5b\u9009",
+    "Clear Filters": "\u6e05\u9664\u7b5b\u9009",
     "Sort": "\u6392\u5e8f",
     "Sort ascending": "\u5347\u5e8f\u6392\u5e8f",
     "Sort descending": "\u964d\u5e8f\u6392\u5e8f",
@@ -258,12 +322,15 @@
     "First": "\u7b2c\u4e00\u9875",
     "Last": "\u6700\u540e\u4e00\u9875",
     "Page": "\u9875",
+    "Per page": "\u6bcf\u9875\u6570\u91cf",
+    "Per Page": "\u6bcf\u9875\u6570\u91cf",
     "Show": "\u663e\u793a",
     "Hide": "\u9690\u85cf",
     "Expand": "\u5c55\u5f00",
     "Collapse": "\u6536\u8d77",
     "Details": "\u8be6\u60c5",
     "Download": "\u4e0b\u8f7d",
+    "Downloads": "\u4e0b\u8f7d",
     "Downloaded": "\u5df2\u4e0b\u8f7d",
     "Not Downloaded": "\u672a\u4e0b\u8f7d",
     "Seeding": "\u505a\u79cd\u4e2d",
@@ -277,6 +344,12 @@
     "Post reply": "\u53d1\u8868\u56de\u590d",
     "New topic": "\u65b0\u4e3b\u9898",
     "New Topic": "\u65b0\u4e3b\u9898",
+    "Create topic": "\u521b\u5efa\u4e3b\u9898",
+    "Create Topic": "\u521b\u5efa\u4e3b\u9898",
+    "Create thread": "\u521b\u5efa\u4e3b\u9898",
+    "Create Thread": "\u521b\u5efa\u4e3b\u9898",
+    "Thread title": "\u4e3b\u9898\u6807\u9898",
+    "Thread Title": "\u4e3b\u9898\u6807\u9898",
     "Mark all as read": "\u5168\u90e8\u6807\u4e3a\u5df2\u8bfb",
     "View unread posts": "\u67e5\u770b\u672a\u8bfb\u5e16\u5b50",
     "View new posts": "\u67e5\u770b\u65b0\u5e16\u5b50",
@@ -287,15 +360,23 @@
     "Compose": "\u5199\u4fe1",
     "Subject": "\u6807\u9898",
     "Recipient": "\u6536\u4ef6\u4eba",
+    "Amount": "\u6570\u91cf",
+    "Message": "\u6d88\u606f",
     "Invite": "\u9080\u8bf7",
     "Invites": "\u9080\u8bf7",
-    "Hub": "\u4e2d\u5fc3",
     "Shop": "\u5546\u5e97",
     "Gift": "\u793c\u7269",
     "Discuss": "\u8ba8\u8bba",
+    "Chat": "\u804a\u5929",
+    "Activity": "\u52a8\u6001",
     "Messages": "\u6d88\u606f",
     "Tickets": "\u5de5\u5355",
+    "Ticket": "\u5de5\u5355",
+    "Support": "\u652f\u6301",
+    "HUNOmeter": "HUNOmeter",
     "Hunos": "Hunos",
+    "Your balance": "\u4f60\u7684\u4f59\u989d",
+    "You have no invites remaining.": "\u4f60\u6ca1\u6709\u5269\u4f59\u9080\u8bf7\u3002",
     "Pinboard": "\u516c\u544a\u677f",
     "Seeds": "\u79cd\u5b50",
     "Torrent Stats": "\u79cd\u5b50\u7edf\u8ba1",
@@ -333,7 +414,15 @@
     "Source Type": "\u6765\u6e90\u7c7b\u578b",
     "Streaming Service": "\u6d41\u5a92\u4f53\u670d\u52a1",
     "Language": "\u8bed\u8a00",
+    "Source": "\u6765\u6e90",
+    "Resolution": "\u5206\u8fa8\u7387",
+    "Codec": "\u7f16\u7801",
+    "Audio": "\u97f3\u9891",
+    "HDR": "HDR",
+    "Service": "\u670d\u52a1",
     "-- Select a forum --": "-- \u9009\u62e9\u8bba\u575b --",
+    "Unset": "\u672a\u8bbe\u7f6e",
+    "Unknown / N/A": "\u672a\u77e5 / \u4e0d\u9002\u7528",
     "You have unread activity": "\u6709\u672a\u8bfb\u52a8\u6001",
     "Class": "\u7b49\u7ea7",
     "Joined": "\u52a0\u5165\u65f6\u95f4",
@@ -355,6 +444,9 @@
     "Advanced Search": "\u9ad8\u7ea7\u641c\u7d22",
     "Username": "\u7528\u6237\u540d",
     "Uploader": "\u53d1\u5e03\u8005",
+    "Recipient": "\u6536\u4ef6\u4eba",
+    "Amount": "\u6570\u91cf",
+    "Message": "\u6d88\u606f",
     "Password": "\u5bc6\u7801",
     "Email": "\u90ae\u7bb1",
     "Filter": "\u7b5b\u9009",
@@ -363,19 +455,45 @@
     "Save": "\u4fdd\u5b58",
     "Cancel": "\u53d6\u6d88",
     "Enter thread title...": "\u8f93\u5165\u4e3b\u9898\u6807\u9898...",
+    "Search this forum": "\u641c\u7d22\u672c\u7248",
+    "Search requests...": "\u641c\u7d22\u6c42\u79cd...",
+    "Search forums...": "\u641c\u7d22\u8bba\u575b...",
+    "TMDB ID": "TMDB ID",
+    "IMDB ID": "IMDB ID",
+    "TVDB ID": "TVDB ID",
   }));
 
   const WORD_TEXT = [
     [/\bUploaded\b/g, "\u5df2\u4e0a\u4f20"],
     [/\bDownloaded\b/g, "\u5df2\u4e0b\u8f7d"],
+    [/\bNotifications\b/g, "\u901a\u77e5"],
+    [/\bMessages\b/g, "\u6d88\u606f"],
+    [/\bTickets\b/g, "\u5de5\u5355"],
+    [/\bRequests\b/g, "\u6c42\u79cd"],
+    [/\bForums\b/g, "\u8bba\u575b"],
     [/\bSeeders\b/g, "\u505a\u79cd"],
     [/\bLeechers\b/g, "\u4e0b\u8f7d"],
+    [/\bSeeds\b/g, "\u79cd\u5b50"],
+    [/\bLeeches\b/g, "\u4e0b\u8f7d"],
     [/\bSnatched\b/g, "\u5b8c\u6210"],
+    [/\bCompleted\b/g, "\u5df2\u5b8c\u6210"],
+    [/\bActive\b/g, "\u6d3b\u8dc3"],
     [/\bSize\b/g, "\u5927\u5c0f"],
     [/\bCategory\b/g, "\u5206\u7c7b"],
     [/\bSearch\b/g, "\u641c\u7d22"],
     [/\beligible\b/g, "\u53ef\u7528"],
     [/\bYour balance:\b/g, "\u4f60\u7684\u4f59\u989d:"],
+    [/\bGiven\b/g, "\u9001\u51fa"],
+    [/\bReceived\b/g, "\u6536\u5230"],
+    [/\bSent\b/g, "\u5df2\u53d1"],
+    [/\bAvailable\b/g, "\u53ef\u7528"],
+    [/\bForum\b/g, "\u8bba\u575b"],
+    [/\bThread\b/g, "\u4e3b\u9898"],
+    [/\bThreads\b/g, "\u4e3b\u9898"],
+    [/\bTitle\b/g, "\u6807\u9898"],
+    [/\bUploads\b/g, "\u53d1\u5e03"],
+    [/\bDownloads\b/g, "\u4e0b\u8f7d"],
+    [/\bSeedtime\b/g, "\u505a\u79cd\u65f6\u95f4"],
     [/\bVanguard\b/g, "\u5148\u950b"],
     [/\bSquire\b/g, "\u4f8d\u4ece"],
     [/\bKnight\b/g, "\u9a91\u58eb"],
@@ -394,6 +512,97 @@
     window.localStorage.setItem(STORAGE_KEY, mode);
     renderModeSwitcher();
     translate();
+  }
+
+  function getStoredPosition() {
+    try {
+      const parsed = JSON.parse(window.localStorage.getItem(POSITION_KEY) || "null");
+      if (parsed && Number.isFinite(parsed.left) && Number.isFinite(parsed.top)) {
+        return parsed;
+      }
+    } catch (error) {
+      log("invalid stored position", error);
+    }
+    return null;
+  }
+
+  function setStoredPosition(position) {
+    window.localStorage.setItem(POSITION_KEY, JSON.stringify(position));
+  }
+
+  function applySwitcherPosition(container) {
+    const saved = getStoredPosition();
+    if (saved) {
+      const clamped = clampPosition(saved.left, saved.top, container);
+      container.style.left = `${clamped.left}px`;
+      container.style.top = `${clamped.top}px`;
+      container.style.right = "auto";
+      container.style.bottom = "auto";
+      return;
+    }
+
+    container.style.left = "auto";
+    container.style.top = `${CONFIG.defaultPosition.top}px`;
+    container.style.right = `${CONFIG.defaultPosition.right}px`;
+    container.style.bottom = "auto";
+  }
+
+  function clampPosition(left, top, element) {
+    const margin = 8;
+    const width = element.offsetWidth || 220;
+    const height = element.offsetHeight || 72;
+    const maxLeft = Math.max(margin, window.innerWidth - width - margin);
+    const maxTop = Math.max(margin, window.innerHeight - height - margin);
+    return {
+      left: Math.min(Math.max(margin, left), maxLeft),
+      top: Math.min(Math.max(margin, top), maxTop),
+    };
+  }
+
+  function enableSwitcherDrag(container) {
+    const handle = container.querySelector(".huno-ui-translator__handle");
+    if (!handle || handle.dataset.dragReady === "true") return;
+    handle.dataset.dragReady = "true";
+
+    let dragging = null;
+    handle.addEventListener("pointerdown", (event) => {
+      if (event.button !== 0) return;
+      const rect = container.getBoundingClientRect();
+      dragging = {
+        offsetX: event.clientX - rect.left,
+        offsetY: event.clientY - rect.top,
+      };
+      container.classList.add("is-dragging");
+      handle.setPointerCapture(event.pointerId);
+      event.preventDefault();
+    });
+
+    handle.addEventListener("pointermove", (event) => {
+      if (!dragging) return;
+      const next = clampPosition(event.clientX - dragging.offsetX, event.clientY - dragging.offsetY, container);
+      container.style.left = `${next.left}px`;
+      container.style.top = `${next.top}px`;
+      container.style.right = "auto";
+      container.style.bottom = "auto";
+    });
+
+    const finish = (event) => {
+      if (!dragging) return;
+      const rect = container.getBoundingClientRect();
+      const next = clampPosition(rect.left, rect.top, container);
+      setStoredPosition(next);
+      container.classList.remove("is-dragging");
+      dragging = null;
+      try {
+        handle.releasePointerCapture(event.pointerId);
+      } catch (error) {
+        log("pointer release skipped", error);
+      }
+    };
+
+    handle.addEventListener("pointerup", finish);
+    handle.addEventListener("pointercancel", finish);
+    window.addEventListener("resize", () => applySwitcherPosition(container));
   }
 
   function shouldSkip(node) {
@@ -524,8 +733,14 @@
       container.id = "huno-ui-translator-switcher";
       container.setAttribute("data-no-translate", "true");
       container.innerHTML = [
-        "<label for=\"huno-ui-translator-mode\">\u7ffb\u8bd1</label>",
-        "<select id=\"huno-ui-translator-mode\"></select>",
+        "<div class=\"huno-ui-translator__handle\" title=\"\u62d6\u52a8\u79fb\u52a8\">",
+        "  <span class=\"huno-ui-translator__dot\"></span>",
+        "  <span class=\"huno-ui-translator__title\">HUNO \u7ffb\u8bd1</span>",
+        "</div>",
+        "<label class=\"huno-ui-translator__field\" for=\"huno-ui-translator-mode\">",
+        "  <span>\u663e\u793a\u6a21\u5f0f</span>",
+        "  <select id=\"huno-ui-translator-mode\"></select>",
+        "</label>",
       ].join("");
       document.body.appendChild(container);
 
@@ -534,27 +749,67 @@
       style.textContent = `
         #huno-ui-translator-switcher {
           position: fixed;
-          right: 12px;
-          bottom: 12px;
+          top: 78px;
+          right: 16px;
           z-index: 2147483647;
+          width: 218px;
+          border: 1px solid rgba(88, 166, 255, 0.34);
+          border-radius: 8px;
+          background:
+            linear-gradient(180deg, rgba(20, 28, 43, 0.96), rgba(9, 13, 22, 0.94));
+          color: #e6edf7;
+          font: 12px/1.35 system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+          box-shadow: 0 12px 32px rgba(0, 0, 0, 0.38), inset 0 1px 0 rgba(255, 255, 255, 0.06);
+          backdrop-filter: blur(10px);
+          overflow: hidden;
+          user-select: none;
+        }
+        #huno-ui-translator-switcher.is-dragging {
+          opacity: 0.92;
+          cursor: grabbing;
+        }
+        #huno-ui-translator-switcher .huno-ui-translator__handle {
           display: flex;
           align-items: center;
+          gap: 8px;
+          min-height: 30px;
+          padding: 7px 10px;
+          border-bottom: 1px solid rgba(88, 166, 255, 0.2);
+          background: linear-gradient(180deg, rgba(45, 72, 112, 0.72), rgba(23, 35, 55, 0.68));
+          cursor: grab;
+        }
+        #huno-ui-translator-switcher .huno-ui-translator__dot {
+          width: 8px;
+          height: 8px;
+          border-radius: 999px;
+          background: #58a6ff;
+          box-shadow: 0 0 12px rgba(88, 166, 255, 0.9);
+          flex: 0 0 auto;
+        }
+        #huno-ui-translator-switcher .huno-ui-translator__title {
+          font-weight: 700;
+          letter-spacing: 0;
+          color: #f4f8ff;
+        }
+        #huno-ui-translator-switcher .huno-ui-translator__field {
+          display: grid;
           gap: 6px;
-          padding: 7px 8px;
-          border: 1px solid rgba(255, 255, 255, 0.22);
-          border-radius: 6px;
-          background: rgba(20, 24, 28, 0.9);
-          color: #fff;
-          font: 12px/1.2 system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-          box-shadow: 0 4px 16px rgba(0, 0, 0, 0.24);
+          padding: 9px 10px 10px;
+          color: #9fb3cc;
         }
         #huno-ui-translator-switcher select {
-          max-width: 128px;
-          border: 1px solid rgba(255, 255, 255, 0.3);
-          border-radius: 4px;
-          background: #fff;
-          color: #111;
+          width: 100%;
+          min-height: 30px;
+          border: 1px solid rgba(88, 166, 255, 0.35);
+          border-radius: 6px;
+          background: rgba(7, 12, 20, 0.92);
+          color: #f4f8ff;
           font: inherit;
+          outline: none;
+        }
+        #huno-ui-translator-switcher select:focus {
+          border-color: rgba(88, 166, 255, 0.8);
+          box-shadow: 0 0 0 2px rgba(88, 166, 255, 0.18);
         }
       `;
       document.head.appendChild(style);
@@ -567,12 +822,14 @@
         select.appendChild(option);
       }
       select.addEventListener("change", () => setStoredMode(select.value));
+      enableSwitcherDrag(container);
     }
 
     const select = container.querySelector("select");
     if (select.value !== currentMode) {
       select.value = currentMode;
     }
+    applySwitcherPosition(container);
   }
 
   function log(...args) {
