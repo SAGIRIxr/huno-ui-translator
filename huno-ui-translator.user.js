@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         HUNO UI Translator
 // @namespace    https://github.com/SAGIRIxr/huno-ui-translator
-// @version      0.5.0
+// @version      0.6.0
 // @description  Translate stable HUNO interface text to Simplified Chinese while leaving posts, announcements, torrent names, and other user content untouched.
 // @author       SAGIRIxr
 // @match        https://hawke.uno/*
@@ -9,7 +9,7 @@
 // @match        https://huno.tv/*
 // @match        https://*.huno.tv/*
 // @grant        none
-// @run-at       document-idle
+// @run-at       document-start
 // @license      MIT
 // @downloadURL  https://raw.githubusercontent.com/SAGIRIxr/huno-ui-translator/main/huno-ui-translator.user.js
 // @updateURL    https://raw.githubusercontent.com/SAGIRIxr/huno-ui-translator/main/huno-ui-translator.user.js
@@ -32,7 +32,7 @@
 
   const CONFIG = {
     debug: false,
-    scanDelayMs: 120,
+    scanDelayMs: 16,
     defaultPosition: { top: 78, right: 16 },
   };
 
@@ -93,17 +93,20 @@
     ".title",
     ".description",
     ".bbcode",
-    ".prose",
-    ".markdown",
     ".wysiwyg",
     ".user-content",
     "[data-no-translate]",
     "[data-huno-content]",
-    "article",
     "blockquote",
     "pre",
     "code",
     "table tbody",
+  ].join(",");
+
+  const LONG_CONTENT_SELECTOR = [
+    ".prose",
+    ".markdown",
+    "article",
   ].join(",");
 
   const ROOT_SELECTOR = [
@@ -181,6 +184,12 @@
     "[role='tab']",
   ].join(",");
 
+  const WIKI_PATHS = [
+    "/pages/rules-and-guidelines",
+    "/pages/upload-guide",
+    "/community",
+  ];
+
   const TEXT = new Map(Object.entries({
     "Home": "\u9996\u9875",
     "Menu": "\u83dc\u5355",
@@ -197,6 +206,7 @@
     "FAQ": "\u5e38\u89c1\u95ee\u9898",
     "Wiki": "\u7ef4\u57fa",
     "Upload Guide": "\u53d1\u5e03\u6307\u5357",
+    "Upload Assistant": "\u53d1\u5e03\u52a9\u624b",
     "Community": "\u793e\u533a",
     "Img Upload": "\u56fe\u7247\u4e0a\u4f20",
     "Matrix": "Matrix",
@@ -244,6 +254,9 @@
     "Tools": "\u5de5\u5177",
     "Actions": "\u64cd\u4f5c",
     "Help": "\u5e2e\u52a9",
+    "Play the Game": "\u5f00\u59cb\u6e38\u620f",
+    "Bingeing": "\u8ffd\u770b\u4e2d",
+    "Bailing": "\u653e\u5f03\u4e2d",
     "Stats": "\u7edf\u8ba1",
     "Statistics": "\u7edf\u8ba1",
     "User": "\u7528\u6237",
@@ -395,6 +408,7 @@
     "Discuss": "\u8ba8\u8bba",
     "Chat": "\u804a\u5929",
     "Activity": "\u52a8\u6001",
+    "All Uploads": "\u5168\u90e8\u53d1\u5e03",
     "Messages": "\u6d88\u606f",
     "Tickets": "\u5de5\u5355",
     "Ticket": "\u5de5\u5355",
@@ -442,21 +456,55 @@
     "Source Type": "\u6765\u6e90\u7c7b\u578b",
     "Streaming Service": "\u6d41\u5a92\u4f53\u670d\u52a1",
     "Language": "\u8bed\u8a00",
+    "Media Language": "\u5a92\u4f53\u8bed\u8a00",
     "Source": "\u6765\u6e90",
     "Resolution": "\u5206\u8fa8\u7387",
     "Codec": "\u7f16\u7801",
+    "Video Codec": "\u89c6\u9891\u7f16\u7801",
+    "Video Format": "\u89c6\u9891\u683c\u5f0f",
+    "Video Format (HDR)": "\u89c6\u9891\u683c\u5f0f\uff08HDR\uff09",
     "Audio": "\u97f3\u9891",
+    "Audio Format": "\u97f3\u9891\u683c\u5f0f",
+    "Audio Channels": "\u97f3\u9891\u58f0\u9053",
     "HDR": "HDR",
     "Service": "\u670d\u52a1",
+    "Season Number": "\u5b63\u7f16\u53f7",
+    "Episode Number": "\u96c6\u7f16\u53f7",
+    "Distributor": "\u53d1\u884c\u5546",
+    "Edition": "\u7248\u672c",
+    "Region": "\u533a\u57df",
+    "Scaling Type": "\u7f29\u653e\u7c7b\u578b",
+    "Release Tag": "\u53d1\u5e03\u6807\u8bb0",
+    "Release Group": "\u53d1\u5e03\u7ec4",
+    "Release Group (CRU)": "\u53d1\u5e03\u7ec4\uff08CRU\uff09",
+    "Releaser": "\u53d1\u5e03\u8005",
+    "Releaser (RLR)": "\u53d1\u5e03\u8005\uff08RLR\uff09",
+    "Anonymous": "\u533f\u540d",
+    "Stream Friendly": "\u9002\u5408\u76f4\u64ad",
+    "Submit Torrent": "\u63d0\u4ea4\u79cd\u5b50",
     "-- Select a forum --": "-- \u9009\u62e9\u8bba\u575b --",
     "Unset": "\u672a\u8bbe\u7f6e",
     "Unknown / N/A": "\u672a\u77e5 / \u4e0d\u9002\u7528",
-    "All Uploads": "\u5168\u90e8\u53d1\u5e03",
     "Topics": "\u4e3b\u9898",
     "Comments": "\u8bc4\u8bba",
     "Tips": "\u6253\u8d4f",
     "Bounties": "\u60ac\u8d4f",
     "Req. Comments": "\u6c42\u79cd\u8bc4\u8bba",
+    "Earnable": "\u53ef\u83b7\u5f97",
+    "Invite-only": "\u4ec5\u9650\u9080\u8bf7",
+    "EARNABLE": "\u53ef\u83b7\u5f97",
+    "INVITE-ONLY": "\u4ec5\u9650\u9080\u8bf7",
+    "Tiers": "\u7b49\u7ea7",
+    "Earnings": "\u6536\u76ca",
+    "Transactions": "\u4ea4\u6613",
+    "Tier Shield": "\u7b49\u7ea7\u62a4\u76fe",
+    "Hit and Runs (HnRs)": "\u4e0b\u5b8c\u5c31\u8dd1\uff08HnR\uff09",
+    "Multiple IPs": "\u591a IP",
+    "Step 1 --- Preparing Files for Upload": "\u7b2c 1 \u6b65 --- \u51c6\u5907\u53d1\u5e03\u6587\u4ef6",
+    "Step 2 --- The Upload Form": "\u7b2c 2 \u6b65 --- \u53d1\u5e03\u8868\u5355",
+    "Step 3 --- Submission & Moderation": "\u7b2c 3 \u6b65 --- \u63d0\u4ea4\u4e0e\u5ba1\u6838",
+    "The HUNO Naming Key": "HUNO \u547d\u540d\u952e",
+    "Getting In": "\u52a0\u5165\u65b9\u5f0f",
     "Hawke-uno is a hawke-one service powered by UNIT3D. All rights reserved. \u00a9 hawke-one 2026": "HAWKE-UNO \u662f HAWKE-ONE \u65d7\u4e0b\u670d\u52a1\uff0c\u7531 UNIT3D \u9a71\u52a8\u3002\u4fdd\u7559\u6240\u6709\u6743\u5229\u3002\u00a9 HAWKE-ONE 2026",
     "HAWKE-UNO IS A HAWKE-ONE SERVICE POWERED BY UNIT3D. ALL RIGHTS RESERVED. \u00a9 HAWKE-ONE 2026": "HAWKE-UNO \u662f HAWKE-ONE \u65d7\u4e0b\u670d\u52a1\uff0c\u7531 UNIT3D \u9a71\u52a8\u3002\u4fdd\u7559\u6240\u6709\u6743\u5229\u3002\u00a9 HAWKE-ONE 2026",
     "You have unread activity": "\u6709\u672a\u8bfb\u52a8\u6001",
@@ -652,11 +700,18 @@
 
   function shouldSkip(node) {
     const element = node.nodeType === Node.ELEMENT_NODE ? node : node.parentElement;
-    return !element || Boolean(element.closest(SKIP_SELECTOR));
+    if (!element) return true;
+    if (element.closest(LONG_CONTENT_SELECTOR) && !isWikiPage()) return true;
+    return Boolean(element.closest(SKIP_SELECTOR));
   }
 
   function isInsideAllowedRoot(element) {
+    if (isWikiPage() && element.closest("main")) return true;
     return Boolean(element.closest(ROOT_SELECTOR));
+  }
+
+  function isWikiPage() {
+    return WIKI_PATHS.some((path) => window.location.pathname.startsWith(path));
   }
 
   function preserveOuterWhitespace(original, translated) {
@@ -673,10 +728,19 @@
     if (dictionary.has(value)) return dictionary.get(value);
     const collapsed = value.replace(/\s+/g, " ");
     if (collapsed !== value && dictionary.has(collapsed)) return dictionary.get(collapsed);
+    const cleaned = collapsed.replace(/^[\s:»›\-–—]+/, "").replace(/[\s:»›\-–—]+$/, "");
+    if (cleaned !== collapsed && dictionary.has(cleaned)) return dictionary.get(cleaned);
     if (value === value.toUpperCase() && /[A-Z]/.test(value)) {
-      const normalized = titleCase(value);
+      const normalized = titleCase(cleaned);
       if (dictionary.has(normalized)) return dictionary.get(normalized);
-      const sentence = normalized.replace(/\bAnd\b/g, "and").replace(/\bOr\b/g, "or").replace(/\bBy\b/g, "by");
+      const sentence = normalized
+        .replace(/\bAnd\b/g, "and")
+        .replace(/\bOr\b/g, "or")
+        .replace(/\bBy\b/g, "by")
+        .replace(/\bFor\b/g, "for")
+        .replace(/\bOf\b/g, "of")
+        .replace(/\bTo\b/g, "to")
+        .replace(/\bThe\b/g, "the");
       if (dictionary.has(sentence)) return dictionary.get(sentence);
     }
     return "";
@@ -952,12 +1016,19 @@
     }, CONFIG.scanDelayMs);
   }
 
-  renderModeSwitcher();
-  translate();
+  function init() {
+    renderModeSwitcher();
+    translate();
 
-  new MutationObserver(scheduleTranslate).observe(document.documentElement, {
-    childList: true,
-    subtree: true,
-    characterData: true,
-  });
+    new MutationObserver(scheduleTranslate).observe(document.documentElement, {
+      childList: true,
+      subtree: true,
+    });
+  }
+
+  if (document.body) {
+    init();
+  } else {
+    document.addEventListener("DOMContentLoaded", init, { once: true });
+  }
 })();
