@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         HUNO UI Translator
 // @namespace    https://github.com/SAGIRIxr/huno-ui-translator
-// @version      0.4.0
+// @version      0.5.0
 // @description  Translate stable HUNO interface text to Simplified Chinese while leaving posts, announcements, torrent names, and other user content untouched.
 // @author       SAGIRIxr
 // @match        https://hawke.uno/*
@@ -19,8 +19,11 @@
 (function () {
   "use strict";
 
+  if (window.top !== window.self) return;
+
   const STORAGE_KEY = "huno-ui-translator-mode";
   const POSITION_KEY = "huno-ui-translator-position";
+  const COLLAPSED_KEY = "huno-ui-translator-collapsed";
   const MODE = {
     ZH: "zh",
     ORIGINAL: "original",
@@ -148,6 +151,11 @@
     ".deep-space-tab",
     ".deep-space-filter",
     ".deep-space-search",
+    ".ds-page-banner",
+    ".ds-homepage__col-link",
+    ".ds-homepage__panel-tab",
+    ".ds-homepage__tab",
+    ".ds-user-stats",
     ".ds-field",
     ".ds-field__label",
     ".ds-field__input",
@@ -157,6 +165,12 @@
     ".ds-pill",
     ".ds-tabs",
     ".ds-tab",
+    "h1",
+    "h2",
+    "h3",
+    "h4",
+    "h5",
+    "h6",
     "label",
     "select",
     "option",
@@ -178,9 +192,16 @@
     "Top 10": "Top 10",
     "Leaderboard": "\u6392\u884c\u699c",
     "Rules": "\u89c4\u5219",
+    "Rules and Guidelines": "\u89c4\u5219\u4e0e\u6307\u5357",
     "Info": "\u4fe1\u606f",
     "FAQ": "\u5e38\u89c1\u95ee\u9898",
     "Wiki": "\u7ef4\u57fa",
+    "Upload Guide": "\u53d1\u5e03\u6307\u5357",
+    "Community": "\u793e\u533a",
+    "Img Upload": "\u56fe\u7247\u4e0a\u4f20",
+    "Matrix": "Matrix",
+    "IRC": "IRC",
+    "API": "API",
     "Staff": "\u7ba1\u7406\u7ec4",
     "Staff PM": "\u7ba1\u7406\u7ec4\u79c1\u4fe1",
     "Inbox": "\u6536\u4ef6\u7bb1",
@@ -192,6 +213,10 @@
     "Hub": "\u4e2d\u5fc3",
     "Store": "\u5546\u5e97",
     "History": "\u5386\u53f2",
+    "My Torrents": "\u6211\u7684\u79cd\u5b50",
+    "My Socials": "\u6211\u7684\u793e\u4ea4",
+    "My Settings": "\u6211\u7684\u8bbe\u7f6e",
+    "Tiers": "\u7b49\u7ea7",
     "Settings": "\u8bbe\u7f6e",
     "Logout": "\u9000\u51fa\u767b\u5f55",
     "Log out": "\u9000\u51fa\u767b\u5f55",
@@ -291,6 +316,7 @@
     "Leechers": "\u4e0b\u8f7d",
     "Peers": "\u540c\u4f34",
     "Uploaded": "\u5df2\u4e0a\u4f20",
+    "Uploads": "\u53d1\u5e03",
     "Downloaded": "\u5df2\u4e0b\u8f7d",
     "Ratio": "\u5206\u4eab\u7387",
     "Bonus": "\u9b54\u529b",
@@ -391,6 +417,8 @@
     "Tips (Given / Received)": "\u6253\u8d4f\uff08\u9001\u51fa / \u6536\u5230\uff09",
     "Gifts (Given / Received)": "\u793c\u7269\uff08\u9001\u51fa / \u6536\u5230\uff09",
     "Bounty (Given / Received)": "\u60ac\u8d4f\uff08\u9001\u51fa / \u6536\u5230\uff09",
+    "Bounty": "\u60ac\u8d4f",
+    "Boosts": "\u52a9\u63a8",
     "Likes (Given / Received)": "\u70b9\u8d5e\uff08\u9001\u51fa / \u6536\u5230\uff09",
     "Forum Threads Created": "\u521b\u5efa\u7684\u8bba\u575b\u4e3b\u9898",
     "Comments (Forum / Title)": "\u8bc4\u8bba\uff08\u8bba\u575b / \u6807\u9898\uff09",
@@ -423,6 +451,14 @@
     "-- Select a forum --": "-- \u9009\u62e9\u8bba\u575b --",
     "Unset": "\u672a\u8bbe\u7f6e",
     "Unknown / N/A": "\u672a\u77e5 / \u4e0d\u9002\u7528",
+    "All Uploads": "\u5168\u90e8\u53d1\u5e03",
+    "Topics": "\u4e3b\u9898",
+    "Comments": "\u8bc4\u8bba",
+    "Tips": "\u6253\u8d4f",
+    "Bounties": "\u60ac\u8d4f",
+    "Req. Comments": "\u6c42\u79cd\u8bc4\u8bba",
+    "Hawke-uno is a hawke-one service powered by UNIT3D. All rights reserved. \u00a9 hawke-one 2026": "HAWKE-UNO \u662f HAWKE-ONE \u65d7\u4e0b\u670d\u52a1\uff0c\u7531 UNIT3D \u9a71\u52a8\u3002\u4fdd\u7559\u6240\u6709\u6743\u5229\u3002\u00a9 HAWKE-ONE 2026",
+    "HAWKE-UNO IS A HAWKE-ONE SERVICE POWERED BY UNIT3D. ALL RIGHTS RESERVED. \u00a9 HAWKE-ONE 2026": "HAWKE-UNO \u662f HAWKE-ONE \u65d7\u4e0b\u670d\u52a1\uff0c\u7531 UNIT3D \u9a71\u52a8\u3002\u4fdd\u7559\u6240\u6709\u6743\u5229\u3002\u00a9 HAWKE-ONE 2026",
     "You have unread activity": "\u6709\u672a\u8bfb\u52a8\u6001",
     "Class": "\u7b49\u7ea7",
     "Joined": "\u52a0\u5165\u65f6\u95f4",
@@ -530,6 +566,15 @@
     window.localStorage.setItem(POSITION_KEY, JSON.stringify(position));
   }
 
+  function isCollapsed() {
+    return window.localStorage.getItem(COLLAPSED_KEY) === "true";
+  }
+
+  function setCollapsed(collapsed) {
+    window.localStorage.setItem(COLLAPSED_KEY, String(collapsed));
+    renderModeSwitcher();
+  }
+
   function applySwitcherPosition(container) {
     const saved = getStoredPosition();
     if (saved) {
@@ -620,6 +665,23 @@
     return `${leading}${translated}${trailing}`;
   }
 
+  function titleCase(value) {
+    return value.toLowerCase().replace(/\b[a-z]/g, (letter) => letter.toUpperCase());
+  }
+
+  function getTextTranslation(value, dictionary = TEXT) {
+    if (dictionary.has(value)) return dictionary.get(value);
+    const collapsed = value.replace(/\s+/g, " ");
+    if (collapsed !== value && dictionary.has(collapsed)) return dictionary.get(collapsed);
+    if (value === value.toUpperCase() && /[A-Z]/.test(value)) {
+      const normalized = titleCase(value);
+      if (dictionary.has(normalized)) return dictionary.get(normalized);
+      const sentence = normalized.replace(/\bAnd\b/g, "and").replace(/\bOr\b/g, "or").replace(/\bBy\b/g, "by");
+      if (dictionary.has(sentence)) return dictionary.get(sentence);
+    }
+    return "";
+  }
+
   function formatTranslation(original, translated) {
     if (!translated || translated === original) return original;
     if (currentMode === MODE.ORIGINAL) return original;
@@ -631,7 +693,7 @@
     const trimmed = value.trim();
     if (!trimmed) return value;
 
-    const exact = TEXT.get(trimmed);
+    const exact = getTextTranslation(trimmed);
     if (exact) {
       return preserveOuterWhitespace(value, formatTranslation(trimmed, exact));
     }
@@ -667,7 +729,7 @@
   function translateAttribute(element, attribute, dictionary) {
     if (!element.hasAttribute(attribute)) return;
     const original = getOriginalAttribute(element, attribute);
-    const translated = dictionary.get(original.trim());
+    const translated = getTextTranslation(original.trim(), dictionary);
     const next = translated
       ? preserveOuterWhitespace(original, formatTranslation(original.trim(), translated))
       : original;
@@ -727,7 +789,16 @@
   }
 
   function renderModeSwitcher() {
-    let container = document.getElementById("huno-ui-translator-switcher");
+    const duplicates = Array.from(document.querySelectorAll("#huno-ui-translator-switcher"));
+    for (const duplicate of duplicates.slice(1)) {
+      duplicate.remove();
+    }
+
+    let container = duplicates[0] || document.getElementById("huno-ui-translator-switcher");
+    if (container && !container.querySelector(".huno-ui-translator__collapse")) {
+      container.remove();
+      container = null;
+    }
     if (!container) {
       container = document.createElement("div");
       container.id = "huno-ui-translator-switcher";
@@ -736,11 +807,14 @@
         "<div class=\"huno-ui-translator__handle\" title=\"\u62d6\u52a8\u79fb\u52a8\">",
         "  <span class=\"huno-ui-translator__dot\"></span>",
         "  <span class=\"huno-ui-translator__title\">HUNO \u7ffb\u8bd1</span>",
+        "  <button class=\"huno-ui-translator__collapse\" type=\"button\" aria-label=\"\u6298\u53e0\u7ffb\u8bd1\u9762\u677f\"></button>",
         "</div>",
-        "<label class=\"huno-ui-translator__field\" for=\"huno-ui-translator-mode\">",
-        "  <span>\u663e\u793a\u6a21\u5f0f</span>",
-        "  <select id=\"huno-ui-translator-mode\"></select>",
-        "</label>",
+        "<div class=\"huno-ui-translator__body\">",
+        "  <label class=\"huno-ui-translator__field\" for=\"huno-ui-translator-mode\">",
+        "    <span>\u663e\u793a\u6a21\u5f0f</span>",
+        "    <select id=\"huno-ui-translator-mode\"></select>",
+        "  </label>",
+        "</div>",
       ].join("");
       document.body.appendChild(container);
 
@@ -777,6 +851,29 @@
           border-bottom: 1px solid rgba(88, 166, 255, 0.2);
           background: linear-gradient(180deg, rgba(45, 72, 112, 0.72), rgba(23, 35, 55, 0.68));
           cursor: grab;
+        }
+        #huno-ui-translator-switcher .huno-ui-translator__collapse {
+          margin-left: auto;
+          width: 24px;
+          height: 22px;
+          border: 1px solid rgba(88, 166, 255, 0.28);
+          border-radius: 5px;
+          background: rgba(7, 12, 20, 0.64);
+          color: #dceaff;
+          cursor: pointer;
+          font: 700 14px/1 system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        }
+        #huno-ui-translator-switcher .huno-ui-translator__collapse::before {
+          content: "−";
+        }
+        #huno-ui-translator-switcher.is-collapsed {
+          width: 154px;
+        }
+        #huno-ui-translator-switcher.is-collapsed .huno-ui-translator__body {
+          display: none;
+        }
+        #huno-ui-translator-switcher.is-collapsed .huno-ui-translator__collapse::before {
+          content: "+";
         }
         #huno-ui-translator-switcher .huno-ui-translator__dot {
           width: 8px;
@@ -822,6 +919,12 @@
         select.appendChild(option);
       }
       select.addEventListener("change", () => setStoredMode(select.value));
+      const collapseControl = container.querySelector(".huno-ui-translator__collapse");
+      collapseControl.addEventListener("pointerdown", (event) => event.stopPropagation());
+      collapseControl.addEventListener("click", (event) => {
+        event.stopPropagation();
+        setCollapsed(!isCollapsed());
+      });
       enableSwitcherDrag(container);
     }
 
@@ -829,6 +932,9 @@
     if (select.value !== currentMode) {
       select.value = currentMode;
     }
+    container.classList.toggle("is-collapsed", isCollapsed());
+    const collapseButton = container.querySelector(".huno-ui-translator__collapse");
+    collapseButton.setAttribute("aria-label", isCollapsed() ? "\u5c55\u5f00\u7ffb\u8bd1\u9762\u677f" : "\u6298\u53e0\u7ffb\u8bd1\u9762\u677f");
     applySwitcherPosition(container);
   }
 
