@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         HUNO UI Translator
 // @namespace    https://github.com/SAGIRIxr/huno-ui-translator
-// @version      0.7.0
+// @version      0.7.1
 // @description  Translate stable HUNO interface text to Simplified Chinese while leaving posts, announcements, torrent names, and other user content untouched.
 // @author       SAGIRIxr
 // @match        https://hawke.uno/*
@@ -100,7 +100,6 @@
     "blockquote",
     "pre",
     "code",
-    "table tbody",
   ].join(",");
 
   const LONG_CONTENT_SELECTOR = [
@@ -147,6 +146,9 @@
     ".deep-space-user-card",
     ".deep-space-user-menu",
     ".deep-space-user-stats",
+    ".deep-space-user-hub",
+    ".deep-space-user-hub__right",
+    ".deep-space-user-hub__content",
     ".deep-space-modal",
     ".deep-space-card",
     ".deep-space-panel",
@@ -154,11 +156,20 @@
     ".deep-space-tab",
     ".deep-space-filter",
     ".deep-space-search",
+    ".deep-space-torrent__tabs",
+    ".deep-space-torrent__tab",
+    ".deep-space-torrent__panel",
+    ".deep-space-torrent__panel-body",
     ".ds-page-banner",
     ".ds-homepage__col-link",
     ".ds-homepage__panel-tab",
     ".ds-homepage__tab",
     ".ds-user-stats",
+    ".ds-hub-filters",
+    ".ds-hub-filters__primary",
+    ".ds-tiers-grid",
+    ".ds-macro-row",
+    ".ds-macro-row__name-content",
     ".ds-field",
     ".ds-field__label",
     ".ds-field__input",
@@ -601,8 +612,53 @@
     "Small Council": "Small Council",
     "Members": "\u6210\u5458",
     "members": "\u6210\u5458",
+    "Base tier which all new members start at.": "\u6240\u6709\u65b0\u6210\u5458\u7684\u521d\u59cb\u7b49\u7ea7\u3002",
+    "+ Can download": "+ \u53ef\u4e0b\u8f7d",
+    "+ Can upload": "+ \u53ef\u53d1\u5e03",
+    "+ Can request": "+ \u53ef\u6c42\u79cd",
+    "+ Can invite": "+ \u53ef\u9080\u8bf7",
+    "+ Can see peers": "+ \u53ef\u67e5\u770b\u540c\u4f34",
+    "+ Listed uploads": "+ \u53ef\u5217\u51fa\u53d1\u5e03",
+    "+ HnR immunity": "+ HnR \u8c41\u514d",
+    "+ Trusted uploader": "+ \u53ef\u4fe1\u53d1\u5e03\u8005",
+    "+ Worthy": "+ Worthy",
+    "+ Internal": "+ \u5185\u90e8",
+    "+ Custom branding": "+ \u81ea\u5b9a\u4e49\u54c1\u724c",
+    "+ Mod powers": "+ \u7248\u4e3b\u6743\u9650",
+    "+ Admin powers": "+ \u7ba1\u7406\u5458\u6743\u9650",
+    "+ RSS": "+ RSS",
+    "+ IRC Server": "+ IRC \u670d\u52a1\u5668",
+    "+ IRC Announce": "+ IRC \u53d1\u5e03\u901a\u77e5",
+    "+ Upload API": "+ \u53d1\u5e03 API",
+    "+ Can apply for hawke-one Discord access": "+ \u53ef\u7533\u8bf7 hawke-one Discord \u8bbf\u95ee\u6743\u9650",
+    "+ hawke-one Discord invite": "+ hawke-one Discord \u9080\u8bf7",
+    "+ Unsullied on hawke-one Discord with added perks": "+ hawke-one Discord \u4e0a\u7684 Unsullied \u8eab\u4efd\u53ca\u989d\u5916\u6743\u76ca",
+    "+ Faceless Men on hawke-one Discord with added perks": "+ hawke-one Discord \u4e0a\u7684 Faceless Men \u8eab\u4efd\u53ca\u989d\u5916\u6743\u76ca",
+    "+ Targaryen on hawke-one Discord with added perks": "+ hawke-one Discord \u4e0a\u7684 Targaryen \u8eab\u4efd\u53ca\u989d\u5916\u6743\u76ca",
+    "Special guests and VIPs": "\u7279\u522b\u6765\u5bbe\u4e0e VIP",
+    "Notables from the open seas with memorable achievements and meaningful contributions.": "\u6765\u81ea\u5f00\u653e\u6d77\u57df\u3001\u62e5\u6709\u503c\u5f97\u8bb0\u4f4f\u7684\u6210\u5c31\u4e0e\u91cd\u8981\u8d21\u732e\u7684\u77e5\u540d\u6210\u5458\u3002",
+    "Internals": "\u5185\u90e8\u7ec4",
+    "Crews and/or individuals that release guaranteed top-quality stuff internally at HUNO. They don't do so exclusively, however, and are free to release elsewhere too.": "\u5728 HUNO \u5185\u90e8\u53d1\u5e03\u9ad8\u8d28\u91cf\u5185\u5bb9\u7684\u56e2\u961f\u6216\u4e2a\u4eba\u3002\u4ed6\u4eec\u4e0d\u4e00\u5b9a\u53ea\u5728\u8fd9\u91cc\u53d1\u5e03\uff0c\u4e5f\u53ef\u4ee5\u5728\u5176\u4ed6\u5730\u65b9\u53d1\u5e03\u3002",
     "Earnings": "\u6536\u76ca",
     "Transactions": "\u4ea4\u6613",
+    "Total Earnings": "\u603b\u6536\u76ca",
+    "Vanguard Multiplier": "Vanguard \u500d\u7387",
+    "Squire Multiplier": "Squire \u500d\u7387",
+    "Knight Multiplier": "Knight \u500d\u7387",
+    "Champion Multiplier": "Champion \u500d\u7387",
+    "Guardian Multiplier": "Guardian \u500d\u7387",
+    "Legend Multiplier": "Legend \u500d\u7387",
+    "Fortune favours the brave! Enjoy a massive multiplier boost as you charge and thunder head-on into battle.": "\u547d\u8fd0\u7737\u987e\u52c7\u8005\uff01\u51b2\u950b\u9677\u9635\u65f6\uff0c\u4eab\u53d7\u5927\u5e45\u6536\u76ca\u500d\u7387\u52a0\u6210\u3002",
+    "The initial horde has left you bloodied and bruised. Toil hard as you enlist to support the long-term war effort.": "\u6700\u521d\u7684\u5927\u519b\u5df2\u8ba9\u4f60\u6ee1\u8eab\u4f24\u75d5\u3002\u7ee7\u7eed\u82e6\u5e72\uff0c\u4e3a\u957f\u671f\u6218\u4e8b\u8d21\u732e\u529b\u91cf\u3002",
+    "You completed your training. Use this boost to take the battlefield once more with honour.": "\u4f60\u5df2\u5b8c\u6210\u8bad\u7ec3\u3002\u501f\u52a9\u8fd9\u4efd\u52a0\u6210\uff0c\u518d\u6b21\u8363\u8000\u5730\u8e0f\u4e0a\u6218\u573a\u3002",
+    "Your first battle is won. Enjoy your spoils and rest while you can, because the war awaits!": "\u4f60\u5df2\u8d62\u4e0b\u9996\u6218\u3002\u4eab\u53d7\u6218\u5229\u54c1\u5e76\u6293\u7d27\u4f11\u606f\uff0c\u56e0\u4e3a\u6218\u4e89\u4ecd\u5728\u7b49\u5f85\uff01",
+    "Real heroes do not leave the fallen. Muster your courage for you are their only hope.": "\u771f\u6b63\u7684\u82f1\u96c4\u4e0d\u4f1a\u629b\u4e0b\u5012\u4e0b\u7684\u4eba\u3002\u9f13\u8d77\u52c7\u6c14\uff0c\u4f60\u662f\u4ed6\u4eec\u552f\u4e00\u7684\u5e0c\u671b\u3002",
+    "They will sing your songs and tell your tales for all glory is yours.": "\u4ed6\u4eec\u5c06\u6b4c\u5531\u4f60\u7684\u6b4c\u3001\u8bb2\u8ff0\u4f60\u7684\u4f20\u5947\uff0c\u6240\u6709\u8363\u5149\u7686\u5c5e\u4e8e\u4f60\u3002",
+    "Applied after 24 hours up until 10 days.": "24 \u5c0f\u65f6\u540e\u751f\u6548\uff0c\u6301\u7eed\u5230 10 \u5929\u3002",
+    "Applied after 10 days up until 6 months.": "10 \u5929\u540e\u751f\u6548\uff0c\u6301\u7eed\u5230 6 \u4e2a\u6708\u3002",
+    "Applied after 6 months up until 1 year.": "6 \u4e2a\u6708\u540e\u751f\u6548\uff0c\u6301\u7eed\u5230 1 \u5e74\u3002",
+    "Applied after 1 year up until 5 years.": "1 \u5e74\u540e\u751f\u6548\uff0c\u6301\u7eed\u5230 5 \u5e74\u3002",
+    "Applied after 5 years.": "5 \u5e74\u540e\u751f\u6548\u3002",
     "Tier Shield": "\u7b49\u7ea7\u62a4\u76fe",
     "Tier Shields": "\u7b49\u7ea7\u62a4\u76fe",
     "Economy": "\u7ecf\u6d4e",
@@ -716,6 +772,26 @@
     [/\bSeeding \((\d+)\)/g, "\u505a\u79cd\u4e2d\uff08$1\uff09"],
     [/\bLeeching \((\d+)\)/g, "\u4e0b\u8f7d\u4e2d\uff08$1\uff09"],
     [/(\d[\d,]*) members\b/g, "$1 \u540d\u6210\u5458"],
+    [/\+ Can download/g, "+ \u53ef\u4e0b\u8f7d"],
+    [/\+ Can upload/g, "+ \u53ef\u53d1\u5e03"],
+    [/\+ Can request/g, "+ \u53ef\u6c42\u79cd"],
+    [/\+ Can invite/g, "+ \u53ef\u9080\u8bf7"],
+    [/\+ Can see peers/g, "+ \u53ef\u67e5\u770b\u540c\u4f34"],
+    [/\+ Listed uploads/g, "+ \u53ef\u5217\u51fa\u53d1\u5e03"],
+    [/\+ HnR immunity/g, "+ HnR \u8c41\u514d"],
+    [/\+ Trusted uploader/g, "+ \u53ef\u4fe1\u53d1\u5e03\u8005"],
+    [/\+ Internal/g, "+ \u5185\u90e8"],
+    [/\+ Custom branding/g, "+ \u81ea\u5b9a\u4e49\u54c1\u724c"],
+    [/\+ Mod powers/g, "+ \u7248\u4e3b\u6743\u9650"],
+    [/\+ Admin powers/g, "+ \u7ba1\u7406\u5458\u6743\u9650"],
+    [/\+ IRC Server/g, "+ IRC \u670d\u52a1\u5668"],
+    [/\+ IRC Announce/g, "+ IRC \u53d1\u5e03\u901a\u77e5"],
+    [/\+ Upload API/g, "+ \u53d1\u5e03 API"],
+    [/\+ Can apply for hawke-one Discord access/g, "+ \u53ef\u7533\u8bf7 hawke-one Discord \u8bbf\u95ee\u6743\u9650"],
+    [/\+ hawke-one Discord invite/g, "+ hawke-one Discord \u9080\u8bf7"],
+    [/\+ Unsullied on hawke-one Discord with added perks/g, "+ hawke-one Discord \u4e0a\u7684 Unsullied \u8eab\u4efd\u53ca\u989d\u5916\u6743\u76ca"],
+    [/\+ Faceless Men on hawke-one Discord with added perks/g, "+ hawke-one Discord \u4e0a\u7684 Faceless Men \u8eab\u4efd\u53ca\u989d\u5916\u6743\u76ca"],
+    [/\+ Targaryen on hawke-one Discord with added perks/g, "+ hawke-one Discord \u4e0a\u7684 Targaryen \u8eab\u4efd\u53ca\u989d\u5916\u6743\u76ca"],
     [/\bUploaded\b/g, "\u5df2\u4e0a\u4f20"],
     [/\bDownloaded\b/g, "\u5df2\u4e0b\u8f7d"],
     [/\bNotifications\b/g, "\u901a\u77e5"],
@@ -877,6 +953,7 @@
     const element = node.nodeType === Node.ELEMENT_NODE ? node : node.parentElement;
     if (!element) return true;
     if (element.closest(LONG_CONTENT_SELECTOR) && !isWikiPage()) return true;
+    if (element.closest("table tbody") && !isHunosPage()) return true;
     return Boolean(element.closest(SKIP_SELECTOR));
   }
 
@@ -887,6 +964,10 @@
 
   function isWikiPage() {
     return WIKI_PATHS.some((path) => window.location.pathname.startsWith(path));
+  }
+
+  function isHunosPage() {
+    return /^\/users\/[^/]+\/hub\/hunos(?:\/|$)/.test(window.location.pathname);
   }
 
   function preserveOuterWhitespace(original, translated) {
